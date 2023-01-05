@@ -1,0 +1,7 @@
+<p>countries works!</p>
+<tbody>
+<tr *ngFor="let country of countries; let i=index; trackBy: trackByData">
+  <td>{{country.code}}</td>
+  <td>{{country.name}}</td>
+</tr>
+</tbody>

@@ -3,3 +3,45 @@ bachelor.iml
 backend/node_modules
 backend/db.config.js
 backend/package-lock.json
+
+# Compiled output
+frontend1/dist
+frontend1/tmp
+frontend1/out-tsc
+frontend1/bazel-out
+
+# Node
+frontend1/node_modules
+frontend1/npm-debug.log
+frontend1/yarn-error.log
+
+# IDEs and editors
+frontend1/.idea/
+frontend1/.project
+frontend1/.classpath
+frontend1/.c9/
+frontend1/*.launch
+frontend1/.settings/
+frontend1/*.sublime-workspace
+
+# Visual Studio Code
+frontend1/.vscode/*
+frontend1/.vscode/settings.json
+frontend1/.vscode/tasks.json
+frontend1/.vscode/launch.json
+frontend1/.vscode/extensions.json
+frontend1/.history/*
+
+# Miscellaneous
+frontend1/.angular/cache
+frontend1/.sass-cache/
+frontend1/connect.lock
+frontend1/coverage
+frontend1/libpeerconnection.log
+frontend1/testem.log
+frontend1/typings
+
+# System files
+frontend1/.DS_Store
+frontend1/Thumbs.db
+frontend1/package-lock.json
