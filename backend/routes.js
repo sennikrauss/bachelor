@@ -5,8 +5,10 @@ const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
 } = require("./credentials");
+const country = require("./controllers/countries.controller");
 
 module .exports = app => {
+    const country = require("./controllers/countries.controller");
 
     const authenticateKey = (req, response, next) => {
         let api_key = req.header("x-api-key");
@@ -38,7 +40,7 @@ module .exports = app => {
         }))
 
     function isLoggedIn(req, res, next) {
-        req.user ? next() : res.sendStatus(401);
+        req.user ? next() : res.send('<a href="/auth/google">Authenticate with Google</a>');
     }
 
     passport.serializeUser(function (user, done) {
@@ -55,9 +57,7 @@ module .exports = app => {
     })*/
 
     //protect API with Google OAUTH2 API
-    app.get("/protected", isLoggedIn, (req, res) => {
-        res.send("Hello");
-    })
+    app.get("/countries", isLoggedIn, country.findAll);
 
     app.get("/auth/google",
         passport.authenticate('google', {scope: ['email', "profile"]})
@@ -65,7 +65,7 @@ module .exports = app => {
 
     app.get("/google/callback",
         passport.authenticate("google", {
-            successRedirect: "/protected",
+            successRedirect: "/countries",
             failureRedirect: "/auth/failure"
         })
     )
