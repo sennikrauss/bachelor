@@ -1,34 +1,85 @@
-const sql = require("./db");
+const session = require("express-session");
+const CALLBACK_URI = "http://localhost:3001/google/callback";
 const apiKey = require("./db.config").APIKEY;
-module.exports = app => {
-    const user = require("./controllers/users.controller");
-    const country = require("./controllers/countries.controller");
+const {
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+} = require("./credentials");
+
+module .exports = app => {
 
     const authenticateKey = (req, response, next) => {
         let api_key = req.header("x-api-key");
-        if (api_key === api_key) {
+        if (api_key === apiKey) {
             next();
-        }else {
-            response.status(403).send({ error: { code: 403, message: "You not allowed." } });
+        } else {
+            response.status(403).send({error: {code: 403, message: "You not allowed."}});
         }
-        /*sql.query(`SELECT * FROM users WHERE apikey = '${api_key}'`, (err, res) => {
-            if (res.length) {
-               next();
-            }else {
-                response.status(403).send({ error: { code: 403, message: "You not allowed." } });
-            }
-        });*/
     }
 
-    app.post("/user", authenticateKey, user.create);
+    const passport = require("passport");
 
-    app.get("/users", authenticateKey, user.findAll);
+    app.use(session({secret: 'cats'}))
+    app.use(passport.initialize());
+    app.use(passport.session())
 
-    app.get("/user/:id", authenticateKey, user.findOne);
 
-    app.put("/user/:id", authenticateKey, user.update);
 
-    app.delete("/user/:id", authenticateKey, user.delete);
+    const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
-    app.get("/countries", authenticateKey, country.findAll);
-};
+    passport.use(new GoogleStrategy({
+            clientID: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
+            callbackURL: CALLBACK_URI,
+            passReqToCallback: true
+        },
+        function (request, accessToken, refreshToken, profile, done) {
+            return done(null, profile)
+        }))
+
+    function isLoggedIn(req, res, next) {
+        req.user ? next() : res.sendStatus(401);
+    }
+
+    passport.serializeUser(function (user, done) {
+        done(null, user);
+    })
+
+    passport.deserializeUser(function (user, done) {
+        done(null, user);
+    })
+
+    //protect API with api-key
+    /*app.get("/protected", authenticateKey, (req, res) => {
+        res.send(`Hello ${req.user.displayName}`);
+    })*/
+
+    //protect API with Google OAUTH2 API
+    app.get("/protected", isLoggedIn, (req, res) => {
+        res.send("Hello");
+    })
+
+    app.get("/auth/google",
+        passport.authenticate('google', {scope: ['email', "profile"]})
+    )
+
+    app.get("/google/callback",
+        passport.authenticate("google", {
+            successRedirect: "/protected",
+            failureRedirect: "/auth/failure"
+        })
+    )
+
+    app.get("/logout", (req, res, next) => {
+        req.logout(req.user, err => {
+            if(err) return next(err);
+            req.session.destroy();
+            res.redirect("/");
+            //res.send("Goodbye!");
+        });
+    });
+
+    app.get("/auth/failure", (req, res) => {
+        res.send("something went wrong");
+    })
+}

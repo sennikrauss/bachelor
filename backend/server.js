@@ -1,21 +1,13 @@
 const express = require("express");
-const cors = require('cors');
-const bodyParser = require("body-parser");
+/*const cors = require('cors');
+const bodyParser = require("body-parser");*/
 
 const app = express();
 
-// parse requests of content-type: application/json
-app.use(bodyParser.json());
-
-// enable cors for all requests
-app.use(cors());
-
-// parse requests of content-type: application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
-
 // simple route
 app.get("/", (req, res) => {
-    res.json({ message: "Hello Bachelor!" });
+   /* res.json({ message: "Hello Bachelor!" });*/
+    res.send('<a href="/auth/google">Authenticate with Google</a>')
 });
 
 require("./routes")(app);

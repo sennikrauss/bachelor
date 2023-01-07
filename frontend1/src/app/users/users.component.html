@@ -1,7 +1,10 @@
-<p>users works!</p>
-<tbody>
-<tr *ngFor="let user of users; let i=index; trackBy: trackByData">
-  <td>{{user.username}}</td>
-  <td>{{user.password}}</td>
-</tr>
-</tbody>
+<div *ngIf="isLoggedIn()">
+  <div class="container">Hi and welcome !</div>
+  <div class="container">Name: {{userInfo?.info?.name}}</div>
+  <div class="container">
+    <button (click)="logout()">Logout from Google</button>
+  </div>
+  <div class="container">
+    <button (click)="redirectToCountries()">Countries</button>
+  </div>
+</div>

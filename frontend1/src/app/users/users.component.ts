@@ -1,42 +1,32 @@
-import {Component, OnInit} from '@angular/core';
-import {User} from "../shared/tables";
-import {BackendService} from "../shared/backend.service";
-import {ActivatedRoute, Router} from "@angular/router";
-import {NgbModal, NgbModalConfig} from "@ng-bootstrap/ng-bootstrap";
+import {Component} from '@angular/core';
+import {UserInfo} from "../shared/tables";
+import {Router} from "@angular/router";
+import {GoogleApiService} from "../google-api.service";
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css']
 })
-export class UsersComponent implements OnInit{
+export class UsersComponent {
+  userInfo?: UserInfo;
 
-  users!: User[];
-  user!: User;
-  constructor(
-    private bs:BackendService,
-    private route:ActivatedRoute,
-    private router:Router,
-  ) {}
-
-  ngOnInit(): void {
-    this.readAll();
+  constructor(private readonly google: GoogleApiService, private router: Router) {
+    google.userProfileSubject.subscribe(info => {
+      this.userInfo = info
+    })
   }
 
-  trackByData(index: number, user: User): number {
-    return user.id;
+  isLoggedIn(): boolean {
+    return this.google.isLoggedIn();
   }
 
-  readAll(): void {
-    this.bs.getAllUsers().subscribe(
-      {
-        next: (response) => {
-          this.users = response;
-          console.log(this.users);
-          return this.users;
-        },
-        error: (err) => console.log(err),
-        complete: () => console.log('getAll() completed')
-      })
+  logout() {
+    this.google.signOut();
   }
+
+  redirectToCountries() {
+    return this.router.navigateByUrl('countries');
+  }
+
 }

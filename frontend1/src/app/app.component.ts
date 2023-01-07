@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import {GoogleApiService} from "./google-api.service";
+import {UserInfo} from "./shared/tables";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-root',
@@ -7,4 +10,5 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'frontend';
+
 }

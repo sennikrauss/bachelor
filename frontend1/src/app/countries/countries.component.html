@@ -1,4 +1,7 @@
 <p>countries works!</p>
+<div class="container">
+  <button (click)="goToUser()">Go back to User</button>
+</div>
 <tbody>
 <tr *ngFor="let country of countries; let i=index; trackBy: trackByData">
   <td>{{country.code}}</td>

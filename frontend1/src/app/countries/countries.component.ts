@@ -1,6 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {Country} from "../shared/tables";
 import {BackendService} from "../shared/backend.service";
+import {OAuthService} from "angular-oauth2-oidc";
+import {authConfig} from "../authConfig";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-countries',
@@ -10,8 +13,10 @@ import {BackendService} from "../shared/backend.service";
 export class CountriesComponent implements OnInit{
   country! : Country;
   countries!: Country[];
-  constructor(private bs:BackendService) {
-  }
+  constructor(
+    private bs:BackendService,
+    private router: Router
+  ) {}
   ngOnInit(): void {
     this.readAll();
   }
@@ -33,4 +38,7 @@ export class CountriesComponent implements OnInit{
       })
   }
 
+  goToUser() {
+    return this.router.navigateByUrl('users');
+  }
 }

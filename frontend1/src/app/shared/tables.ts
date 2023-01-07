@@ -9,3 +9,12 @@ export interface Country {
   code: string;
   name: string;
 }
+
+export interface UserInfo {
+  info: {
+    sub: string,
+    email: string,
+    name: string,
+    picture: string
+  }
+}

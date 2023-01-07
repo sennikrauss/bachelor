@@ -3,6 +3,7 @@ bachelor.iml
 backend/node_modules
 backend/db.config.js
 backend/package-lock.json
+backend/credentials.js
 
 # Compiled output
 frontend1/dist
