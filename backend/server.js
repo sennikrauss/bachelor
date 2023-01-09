@@ -6,7 +6,6 @@ const app = express();
 
 // simple route
 app.get("/", (req, res) => {
-   /* res.json({ message: "Hello Bachelor!" });*/
     res.send('<a href="/auth/google">Authenticate with Google</a>')
 });
 

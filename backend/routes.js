@@ -1,23 +1,14 @@
 const session = require("express-session");
-const CALLBACK_URI = "http://localhost:3001/google/callback";
-const apiKey = require("./db.config").APIKEY;
 const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
+    CALLBACK_URI
 } = require("./credentials");
-const country = require("./controllers/countries.controller");
+const authenticationKey = require("./apiKey");
 
 module .exports = app => {
     const country = require("./controllers/countries.controller");
-
-    const authenticateKey = (req, response, next) => {
-        let api_key = req.header("x-api-key");
-        if (api_key === apiKey) {
-            next();
-        } else {
-            response.status(403).send({error: {code: 403, message: "You not allowed."}});
-        }
-    }
+    const user = require("./controllers/users.controller");
 
     const passport = require("passport");
 
@@ -52,9 +43,7 @@ module .exports = app => {
     })
 
     //protect API with api-key
-    /*app.get("/protected", authenticateKey, (req, res) => {
-        res.send(`Hello ${req.user.displayName}`);
-    })*/
+    app.get("/users", authenticationKey, user.findAll)
 
     //protect API with Google OAUTH2 API
     app.get("/countries", isLoggedIn, country.findAll);
@@ -70,15 +59,13 @@ module .exports = app => {
         })
     )
 
-    app.get("/logout", (req, res, next) => {
-        req.logout(req.user, err => {
-            if(err) return next(err);
+    app.get('/logout', function(req, res, next){
+        req.logout(function(err) {
+            if (err) { return next(err); }
             req.session.destroy();
-            res.redirect("/");
-            //res.send("Goodbye!");
+            res.redirect('/');
         });
     });
-
     app.get("/auth/failure", (req, res) => {
         res.send("something went wrong");
     })
