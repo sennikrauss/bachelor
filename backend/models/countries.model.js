@@ -6,13 +6,24 @@ const Country = function (country){
 }
 
 Country.getAll = result => {
-    sql.query("SELECT * FROM countries", (err, res) => {
+    sql.query("SELECT * FROM countries_en", (err, res) => {
         if (err) {
             console.log("error: ", err);
             result(null, err);
             return;
         }
 
+        console.log("countries: ", res);
+        result(null, res);
+    });
+};
+Country.findByParam = (param, result) => {
+    sql.query(`SELECT * FROM countries_en WHERE continent = '${param}'`, (err, res) => {
+        if (err) {
+            console.log("error: ", err);
+            result(null, err);
+            return;
+        }
         console.log("countries: ", res);
         result(null, res);
     });

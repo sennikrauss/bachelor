@@ -4,9 +4,9 @@ const {
     GOOGLE_CLIENT_SECRET,
     CALLBACK_URI
 } = require("./credentials");
-const authenticationKey = require("./apiKey");
+const authenticationKey = require("./middleware");
 
-module .exports = app => {
+module.exports = app => {
     const country = require("./controllers/countries.controller");
     const user = require("./controllers/users.controller");
 
@@ -15,8 +15,6 @@ module .exports = app => {
     app.use(session({secret: 'cats'}))
     app.use(passport.initialize());
     app.use(passport.session())
-
-
 
     const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
@@ -28,7 +26,8 @@ module .exports = app => {
         },
         function (request, accessToken, refreshToken, profile, done) {
             return done(null, profile)
-        }))
+        })
+    )
 
     function isLoggedIn(req, res, next) {
         req.user ? next() : res.send('<a href="/auth/google">Authenticate with Google</a>');
@@ -47,6 +46,9 @@ module .exports = app => {
 
     //protect API with Google OAUTH2 API
     app.get("/countries", isLoggedIn, country.findAll);
+
+    // localhost:XXXX/countries/Africa
+    app.get("/countries/:id", isLoggedIn, country.findByParam);
 
     app.get("/auth/google",
         passport.authenticate('google', {scope: ['email', "profile"]})
