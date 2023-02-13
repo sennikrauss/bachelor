@@ -1,31 +1,19 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "backend bachelor",
-  "main": "index.js",
+  "description": "backend of my bachelor app",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [
-    "restapi",
-    "express",
-    "mysql"
-  ],
   "author": "sennikrauss",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "cookie-parser": "^1.4.6",
     "express": "^4.17.1",
     "express-session": "^1.17.3",
-    "jsonwebtoken": "^9.0.0",
     "mysql": "^2.18.1",
     "passport": "^0.6.0",
-    "passport-google-oauth20": "^2.0.0",
-    "util": "^0.12.5"
-  },
-  "devDependencies": {
-    "cors": "^2.8.5"
+    "passport-github2": "^0.1.12",
+    "passport-google-oauth20": "^2.0.0"
   }
 }

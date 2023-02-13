@@ -2,7 +2,10 @@ const session = require("express-session");
 const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    CALLBACK_URI
+    GOOGLE_CALLBACK_URI,
+    GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET,
+    GITHUB_CALLBACK_URI
 } = require("./credentials");
 const authenticationKey = require("./middleware");
 
@@ -17,20 +20,36 @@ module.exports = app => {
     app.use(passport.session())
 
     const GoogleStrategy = require("passport-google-oauth20").Strategy;
+    const GithubStrategy = require("passport-github2").Strategy;
 
-    passport.use(new GoogleStrategy({
+    /*passport.use(new GoogleStrategy({
             clientID: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_CLIENT_SECRET,
-            callbackURL: CALLBACK_URI,
+            callbackURL: GOOGLE_CALLBACK_URI,
             passReqToCallback: true
         },
         function (request, accessToken, refreshToken, profile, done) {
             return done(null, profile)
         })
+    )*/
+
+    passport.use(new GithubStrategy({
+                clientID: GITHUB_CLIENT_ID,
+                clientSecret: GITHUB_CLIENT_SECRET,
+                callbackURL: GITHUB_CALLBACK_URI,
+                passReqToCallback: true
+            },
+            function (request, accessToken, refreshToken, profile, done) {
+                return done(null, profile)
+            })
     )
 
-    function isLoggedIn(req, res, next) {
+    function isLoggedInWithGoogle(req, res, next) {
         req.user ? next() : res.send('<a href="/auth/google">Authenticate with Google</a>');
+    }
+
+    function isLoggedInWithGithub(req, res, next) {
+        req.user ? next() : res.send('<a href="/auth/github">Authenticate with Github</a>');
     }
 
     passport.serializeUser(function (user, done) {
@@ -45,18 +64,31 @@ module.exports = app => {
     app.get("/users", authenticationKey, user.findAll)
 
     //protect API with Google OAUTH2 API
-    app.get("/countries", isLoggedIn, country.findAll);
+    app.get("/countries", isLoggedInWithGoogle, country.findAll);
+
+    app.get("/countriesGithub", isLoggedInWithGithub, country.findAll);
 
     // localhost:XXXX/countries/Africa
-    app.get("/countries/:id", isLoggedIn, country.findByParam);
+    app.get("/countries/:id", isLoggedInWithGoogle, country.findByParam);
 
     app.get("/auth/google",
         passport.authenticate('google', {scope: ['email', "profile"]})
     )
 
+    app.get("/auth/github",
+        passport.authenticate('github', {scope: ['email', "profile"]})
+    )
+
     app.get("/google/callback",
         passport.authenticate("google", {
             successRedirect: "/countries",
+            failureRedirect: "/auth/failure"
+        })
+    )
+
+    app.get("/github/callback",
+        passport.authenticate("github", {
+            successRedirect: "/countriesGithub",
             failureRedirect: "/auth/failure"
         })
     )
