@@ -4,6 +4,7 @@ backend/node_modules
 backend/db.config.js
 backend/package-lock.json
 backend/credentials.js
+backend/.env
 
 # Compiled output
 frontend1/dist

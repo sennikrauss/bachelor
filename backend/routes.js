@@ -1,106 +1,65 @@
 const session = require("express-session");
-const {
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_CALLBACK_URI,
-    GITHUB_CLIENT_ID,
-    GITHUB_CLIENT_SECRET,
-    GITHUB_CALLBACK_URI
-} = require("./credentials");
-const authenticationKey = require("./middleware");
+const express = require('express');
+const dotenv = require('dotenv');
+dotenv.config();
 
-module.exports = app => {
-    const country = require("./controllers/countries.controller");
-    const user = require("./controllers/users.controller");
+const user = require("./controllers/users.controller");
+const {isLoggedIn, getAccessToken, fetchGitHubUser, authenticationKey} = require("./middleware");
 
-    const passport = require("passport");
+const GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
 
-    app.use(session({secret: 'cats'}))
-    app.use(passport.initialize());
-    app.use(passport.session())
+const app = express();
+app.use(express.static("public"));
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+app.use(session({ secret: 'keyboard cat', resave: false, saveUninitialized: true }));
 
-    const GoogleStrategy = require("passport-google-oauth20").Strategy;
-    const GithubStrategy = require("passport-github2").Strategy;
+app.get('/', function(req, res){
+    res.render('layout', { user: req.session.github });
+});
 
-    /*passport.use(new GoogleStrategy({
-            clientID: GOOGLE_CLIENT_ID,
-            clientSecret: GOOGLE_CLIENT_SECRET,
-            callbackURL: GOOGLE_CALLBACK_URI,
-            passReqToCallback: true
-        },
-        function (request, accessToken, refreshToken, profile, done) {
-            return done(null, profile)
-        })
-    )*/
+//protect API with api-key
+app.get("/users", authenticationKey, user.findAll)
 
-    passport.use(new GithubStrategy({
-                clientID: GITHUB_CLIENT_ID,
-                clientSecret: GITHUB_CLIENT_SECRET,
-                callbackURL: GITHUB_CALLBACK_URI,
-                passReqToCallback: true
-            },
-            function (request, accessToken, refreshToken, profile, done) {
-                return done(null, profile)
-            })
+//protect API with oauth2
+app.get('/account', isLoggedIn, function(req, res){
+    res.render('account', { user: req.session.github });
+});
+
+app.get('/login', function(req, res){
+    res.render('login', { user: req.session });
+});
+
+app.get("/auth/github",function (req, res){
+    res.redirect(
+        `${GITHUB_AUTH_URL}?client_id=${process.env.GITHUB_CLIENT_ID}&scope=email%20profile`
     )
+})
 
-    function isLoggedInWithGoogle(req, res, next) {
-        req.user ? next() : res.send('<a href="/auth/google">Authenticate with Google</a>');
+app.get("/github/callback", async (req, res) => {
+        const code = req.query.code;
+        const access_token = await getAccessToken(code, process.env.GITHUB_CLIENT_ID, process.env.GITHUB_CLIENT_SECRET);
+        req.session.token = access_token;
+        const user = await fetchGitHubUser(access_token);
+
+        if (user) {
+            req.session.access_token = access_token;
+            req.session.github = user;
+            req.session.loggedIn = true;
+            res.redirect("/");
+        } else {
+            res.redirect("/auth/failure");
+        }
     }
+)
 
-    function isLoggedInWithGithub(req, res, next) {
-        req.user ? next() : res.send('<a href="/auth/github">Authenticate with Github</a>');
-    }
-
-    passport.serializeUser(function (user, done) {
-        done(null, user);
+app.get("/logout", (req, res) => {
+    req.session.destroy(function() {
+        res.redirect('/');
     })
+})
+app.get("/auth/failure", (req, res) => {
+    res.send("Login did not succeed!");
+})
 
-    passport.deserializeUser(function (user, done) {
-        done(null, user);
-    })
-
-    //protect API with api-key
-    app.get("/users", authenticationKey, user.findAll)
-
-    //protect API with Google OAUTH2 API
-    app.get("/countries", isLoggedInWithGoogle, country.findAll);
-
-    app.get("/countriesGithub", isLoggedInWithGithub, country.findAll);
-
-    // localhost:XXXX/countries/Africa
-    app.get("/countries/:id", isLoggedInWithGoogle, country.findByParam);
-
-    app.get("/auth/google",
-        passport.authenticate('google', {scope: ['email', "profile"]})
-    )
-
-    app.get("/auth/github",
-        passport.authenticate('github', {scope: ['email', "profile"]})
-    )
-
-    app.get("/google/callback",
-        passport.authenticate("google", {
-            successRedirect: "/countries",
-            failureRedirect: "/auth/failure"
-        })
-    )
-
-    app.get("/github/callback",
-        passport.authenticate("github", {
-            successRedirect: "/countriesGithub",
-            failureRedirect: "/auth/failure"
-        })
-    )
-
-    app.get('/logout', function(req, res, next){
-        req.logout(function(err) {
-            if (err) { return next(err); }
-            req.session.destroy();
-            res.redirect('/');
-        });
-    });
-    app.get("/auth/failure", (req, res) => {
-        res.send("something went wrong");
-    })
-}
+module.exports = app;
