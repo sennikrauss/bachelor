@@ -1,9 +1,7 @@
-const {APIKEY} = require("./credentials");
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
-
 const authenticationKey = (req, response, next) => {
     let api_key = req.header("x-api-key");
-    if (api_key === APIKEY) {
+    if (api_key === process.env.API_KEY) {
         next();
     } else {
         response.status(403).send({error: {code: 403, message: "You not allowed."}});
